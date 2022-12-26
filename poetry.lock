@@ -517,6 +517,37 @@ tensorflow-gpu = ["tensorflow-gpu (>=2.11.0,<2.12.0)"]
 tensorflow-rocm = ["tensorflow-rocm (>=2.11.0,<2.12.0)"]
 
 [[package]]
+name = "tensorflow-macos"
+version = "2.11.0"
+description = "TensorFlow is an open source machine learning framework for everyone."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+absl-py = ">=1.0.0"
+astunparse = ">=1.6.0"
+flatbuffers = ">=2.0"
+gast = ">=0.2.1,<=0.4.0"
+google-pasta = ">=0.1.1"
+grpcio = ">=1.24.3,<2.0"
+h5py = ">=2.9.0"
+keras = ">=2.11.0,<2.12"
+libclang = ">=13.0.0"
+numpy = ">=1.20"
+opt-einsum = ">=2.3.2"
+packaging = "*"
+protobuf = ">=3.9.2,<3.20"
+setuptools = "*"
+six = ">=1.12.0"
+tensorboard = ">=2.11,<2.12"
+tensorflow-estimator = ">=2.11.0,<2.12"
+tensorflow-io-gcs-filesystem = {version = ">=0.23.1", markers = "platform_machine != \"arm64\" or platform_system != \"Darwin\""}
+termcolor = ">=1.1.0"
+typing-extensions = ">=3.6.6"
+wrapt = ">=1.11.0"
+
+[[package]]
 name = "termcolor"
 version = "2.1.1"
 description = "ANSI color formatting for output in terminal"
@@ -621,7 +652,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.10"
-content-hash = "dc5d994f401191c8a3c6a316238e2ea5cba53d8bcff15c8bdad4af617b8e9691"
+content-hash = "11c57afec47f5665a17b1e343c06a1061c46ced92a2e14f1eb43516b3181b8a2"
 
 [metadata.files]
 absl-py = [
@@ -988,6 +1019,14 @@ tensorflow-io-gcs-filesystem = [
     {file = "tensorflow_io_gcs_filesystem-0.29.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:8543e14b2f32771e7a7eca7a3d34a8fbdf1f4e9ae7d346bcacff011f43c693cb"},
     {file = "tensorflow_io_gcs_filesystem-0.29.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ef5656932c1f4d4e4d366cdae469562344ecd38cd51de70ebf60e68ee0834da1"},
     {file = "tensorflow_io_gcs_filesystem-0.29.0-cp39-cp39-win_amd64.whl", hash = "sha256:bcb7405474ed136b3a2e2181a732968c52ba9f35a03fe296acc9f1ec4e7044ee"},
+]
+tensorflow-macos = [
+    {file = "tensorflow_macos-2.11.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:0bdbd1bb564d01bd735d6d11451f0658c3dd8187369ee9dd3ed6de6bbdd6df53"},
+    {file = "tensorflow_macos-2.11.0-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:66eb67915cf418eddd3b4c158132609efd50895fa09fd55e4b2f14a3ab85bd34"},
+    {file = "tensorflow_macos-2.11.0-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:6810731e2c8353123f6c9c944d2765b58a2226e7eb9fec1e360f73977c6c6aa4"},
+    {file = "tensorflow_macos-2.11.0-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:881b36d97b67d24197250a091c52c31db14aecfdbf1ac20418a148ec37321978"},
+    {file = "tensorflow_macos-2.11.0-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:8d56b0d0bd140008b0cc4877804c9c310e1e2735444fa99bc7c88ffb2909153d"},
+    {file = "tensorflow_macos-2.11.0-cp39-cp39-macosx_12_0_x86_64.whl", hash = "sha256:db97cd91b905bd01069069f07325a2a291705222eb4914148b9574090a5815ae"},
 ]
 termcolor = [
     {file = "termcolor-2.1.1-py3-none-any.whl", hash = "sha256:fa852e957f97252205e105dd55bbc23b419a70fec0085708fc0515e399f304fd"},
