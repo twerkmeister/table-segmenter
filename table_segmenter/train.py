@@ -6,7 +6,9 @@ import table_segmenter.model
 import table_segmenter.io
 import table_segmenter.preprocessing
 import table_segmenter.metrics
-import tensorflow
+import tensorflow as tf
+import numpy as np
+import conf
 from tensorflow import keras
 
 
@@ -22,9 +24,27 @@ def load_data_for_training(data_path: Text):
     return x_augmented, y
 
 
+def make_dataset(data_path: Text):
+    image_names = sorted(table_segmenter.io.list_images(data_path))
+
+    def generate_examples():
+        for image_name in image_names:
+            image_path = os.path.join(data_path, image_name)
+            image = table_segmenter.io.read_image(image_path)
+            targets = table_segmenter.io.read_targets_for_image(image_path)
+            preprocessed_image = table_segmenter.preprocessing.preprocess_image(image)
+            preprocessed_targets = \
+                [np.asarray([targets[0] / conf.image_downscale_factor, targets[1]])]
+            yield preprocessed_image, preprocessed_targets
+
+    return \
+        tf.data.Dataset.from_generator(generate_examples)\
+            .shuffle(buffer_size=4096).batch(16).prefetch(100)
+
+
 def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
-    tensorflow.compat.v1.disable_eager_execution()
-    # tensorflow.config.run_functions_eagerly(True)
+    tf.compat.v1.disable_eager_execution()
+    # tf.config.run_functions_eagerly(True)
     os.makedirs(experiment_dir, exist_ok=True)
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=experiment_dir)
     early_stopping_callback = keras.callbacks.EarlyStopping("val_loss", patience=7,
@@ -32,9 +52,9 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
                                                             restore_best_weights=True)
 
     print("Loading training data")
-    x_train, y_train = load_data_for_training(train_data_path)
+    train_dataset = make_dataset(train_data_path)
     print("Loading validation data")
-    x_val, y_val = load_data_for_training(val_data_path)
+    val_dataset = make_dataset(val_data_path)
 
     model = table_segmenter.model.build()
     model.compile(loss=table_segmenter.metrics.combined_loss,
@@ -44,20 +64,16 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
                            table_segmenter.metrics.decision_accuracy,
                            table_segmenter.metrics.regression_mean_error,
                            table_segmenter.metrics.regression_error_stddev])
-    model.fit(x_train,
-              y_train,
-              validation_data=(x_val, y_val),
+    model.fit(train_dataset,
+              validation_data=val_dataset,
               epochs=80,
-              batch_size=16,
               verbose=True,
               callbacks=[tensorboard_callback, early_stopping_callback])
 
     model.save(experiment_dir)
 
     # MAE evaluation
-    score = model.evaluate(x_val,
-                           y_val,
-                           batch_size=16,
+    score = model.evaluate(val_dataset,
                            verbose=True)
 
     print("nTest MAE: %.1f%%" % (score[1]))
