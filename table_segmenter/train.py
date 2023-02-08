@@ -8,7 +8,7 @@ import table_segmenter.preprocessing
 import table_segmenter.metrics
 import tensorflow as tf
 import numpy as np
-import conf
+import table_segmenter.conf as conf
 from tensorflow import keras
 
 
