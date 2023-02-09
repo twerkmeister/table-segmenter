@@ -38,8 +38,13 @@ def make_dataset(data_path: Text):
             yield preprocessed_image, preprocessed_targets
 
     return \
-        tf.data.Dataset.from_generator(generate_examples)\
-            .shuffle(buffer_size=4096).batch(16).prefetch(100)
+        tf.data.Dataset.from_generator(
+            generate_examples,
+            output_signature=(
+                tf.TensorSpec(shape=(conf.image_max_width, conf.image_max_height, 1),
+                              dtype=tf.float32),
+                tf.TensorSpec(shape=(2,), dtype=tf.int32)
+            )).shuffle(buffer_size=4096).batch(16).prefetch(100)
 
 
 def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
