@@ -83,12 +83,6 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
 
     model.save(experiment_dir)
 
-    # MAE evaluation
-    score = model.evaluate(val_dataset,
-                           verbose=True)
-
-    print("nTest MAE: %.1f%%" % (score[1]))
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train the table segmenter.')
