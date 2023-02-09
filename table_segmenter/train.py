@@ -47,7 +47,7 @@ def make_dataset(data_path: Text):
             output_signature=(
                 tf.TensorSpec(shape=(conf.image_max_height, conf.image_max_width, 1),
                               dtype=tf.float32),
-                tf.TensorSpec(shape=(2,), dtype=tf.int32)
+                tf.TensorSpec(shape=(2,), dtype=tf.float32)
             )).batch(conf.batch_size).prefetch(100)
 
 
@@ -56,7 +56,7 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
     # tf.config.run_functions_eagerly(True)
     os.makedirs(experiment_dir, exist_ok=True)
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=experiment_dir)
-    early_stopping_callback = keras.callbacks.EarlyStopping("val_loss", patience=7,
+    early_stopping_callback = keras.callbacks.EarlyStopping("val_loss", patience=3,
                                                             verbose=1,
                                                             restore_best_weights=True)
     num_train_examples = len(table_segmenter.io.list_images(train_data_path))
@@ -69,14 +69,13 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
     model = table_segmenter.model.build()
     model.compile(loss=table_segmenter.metrics.combined_loss,
                   optimizer='adam',
-                  # run_eagerly=True,
                   metrics=[table_segmenter.metrics.regression_mean_absolute_error,
                            table_segmenter.metrics.decision_accuracy,
                            table_segmenter.metrics.regression_mean_error,
                            table_segmenter.metrics.regression_error_stddev])
     model.fit(train_dataset,
               validation_data=val_dataset,
-              epochs=80,
+              epochs=10,
               verbose=True,
               steps_per_epoch=num_train_examples//conf.batch_size,
               validation_steps=num_validation_examples//conf.batch_size,
