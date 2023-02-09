@@ -20,10 +20,11 @@ def segment_table(model: keras.Model, table_image: np.ndarray) -> List[int]:
         next_row = (offset +
                     int(y_pred[0][0] * table_segmenter.conf.image_downscale_factor))
 
-        if next_row < table_image.shape[0]:
+        has_next_row = y_pred[0][1] >= 0.5
+        is_valid_next_row = next_row + 10 < table_image.shape[0]
+        should_continue = has_next_row and is_valid_next_row
+        if should_continue:
             rows.append(next_row)
-
-        should_continue = y_pred[0][1] >= 0.5 and next_row < table_image.shape[0]
 
     return rows
 
