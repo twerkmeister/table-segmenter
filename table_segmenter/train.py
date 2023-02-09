@@ -1,4 +1,5 @@
 import argparse
+import random
 from typing import Text
 import os
 
@@ -25,17 +26,20 @@ def load_data_for_training(data_path: Text):
 
 
 def make_dataset(data_path: Text):
-    image_names = sorted(table_segmenter.io.list_images(data_path))
+    image_names = table_segmenter.io.list_images(data_path)
 
     def generate_examples():
-        for image_name in image_names:
-            image_path = os.path.join(data_path, image_name)
-            image = table_segmenter.io.read_image(image_path)
-            targets = table_segmenter.io.read_targets_for_image(image_path)
-            preprocessed_image = table_segmenter.preprocessing.preprocess_image(image)
-            preprocessed_targets = \
-                np.asarray([targets[0] / conf.image_downscale_factor, targets[1]])
-            yield preprocessed_image, preprocessed_targets
+        while True:
+            random.shuffle(image_names)
+            for image_name in image_names:
+                image_path = os.path.join(data_path, image_name)
+                image = table_segmenter.io.read_image(image_path)
+                targets = table_segmenter.io.read_targets_for_image(image_path)
+                preprocessed_image = table_segmenter.preprocessing.preprocess_image(
+                    image)
+                preprocessed_targets = \
+                    np.asarray([targets[0] / conf.image_downscale_factor, targets[1]])
+                yield preprocessed_image, preprocessed_targets
 
     return \
         tf.data.Dataset.from_generator(
@@ -43,8 +47,8 @@ def make_dataset(data_path: Text):
             output_signature=(
                 tf.TensorSpec(shape=(conf.image_max_height, conf.image_max_width, 1),
                               dtype=tf.float32),
-                tf.TensorSpec(shape=(2, ), dtype=tf.int32)
-            )).shuffle(buffer_size=4096).batch(16).prefetch(100)
+                tf.TensorSpec(shape=(2,), dtype=tf.int32)
+            )).batch(conf.batch_size).prefetch(100)
 
 
 def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
@@ -55,7 +59,8 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
     early_stopping_callback = keras.callbacks.EarlyStopping("val_loss", patience=7,
                                                             verbose=1,
                                                             restore_best_weights=True)
-
+    num_train_examples = len(table_segmenter.io.list_images(train_data_path))
+    num_validation_examples = len(table_segmenter.io.list_images(val_data_path))
     print("Loading training data")
     train_dataset = make_dataset(train_data_path)
     print("Loading validation data")
@@ -73,6 +78,8 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
               validation_data=val_dataset,
               epochs=80,
               verbose=True,
+              steps_per_epoch=num_train_examples//conf.batch_size,
+              validation_steps=num_validation_examples//conf.batch_size,
               callbacks=[tensorboard_callback, early_stopping_callback])
 
     model.save(experiment_dir)
