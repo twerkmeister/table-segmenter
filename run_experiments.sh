@@ -9,6 +9,6 @@ for experiment_branch in $(git branch | tr -d "* " | grep "^experiment_"); do
   for run_i in {01..05}; do
     experiment_folder="experiments/$experiment_name/$run_i"
     mkdir -p "$experiment_folder"
-    python -m table_segmenter.train ~/datasets/table_segmentation_data/train ~/datasets/table_segmentation_data/val "$experiment_folder"
+    python -m table_segmenter.train ~/datasets/table_segmentation/train ~/datasets/table_segmentation/val "$experiment_folder"
   done
 done
