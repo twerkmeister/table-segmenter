@@ -43,7 +43,7 @@ def make_dataset(data_path: Text):
             output_signature=(
                 tf.TensorSpec(shape=(conf.image_max_height, conf.image_max_width, 1),
                               dtype=tf.float32),
-                tf.TensorSpec(shape=(2,), dtype=tf.int32)
+                tf.TensorSpec(shape=(1, 2), dtype=tf.int32)
             )).shuffle(buffer_size=4096).batch(16).prefetch(100)
 
 
