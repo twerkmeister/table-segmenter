@@ -2,7 +2,7 @@ import argparse
 import random
 from typing import Text
 import os
-
+import glob
 import table_segmenter.model
 import table_segmenter.io
 import table_segmenter.preprocessing
@@ -25,16 +25,14 @@ def load_data_for_training(data_path: Text):
     return x_augmented, y
 
 
-def make_dataset(data_path: Text):
-    image_names = table_segmenter.io.list_images(data_path)
+def make_dataset(image_names: list[Text]):
 
     def generate_examples():
         while True:
             random.shuffle(image_names)
             for image_name in image_names:
-                image_path = os.path.join(data_path, image_name)
-                image = table_segmenter.io.read_image(image_path)
-                targets = table_segmenter.io.read_targets_for_image(image_path)
+                image = table_segmenter.io.read_image(image_name)
+                targets = table_segmenter.io.read_targets_for_image(image_name)
                 preprocessed_image = table_segmenter.preprocessing.preprocess_image(
                     image)
                 preprocessed_targets = \
@@ -51,7 +49,7 @@ def make_dataset(data_path: Text):
             )).batch(conf.batch_size).prefetch(100)
 
 
-def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
+def train(data_glob: Text, experiment_dir: Text):
     tf.compat.v1.disable_eager_execution()
     # tf.config.run_functions_eagerly(True)
     os.makedirs(experiment_dir, exist_ok=True)
@@ -59,12 +57,17 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
     early_stopping_callback = keras.callbacks.EarlyStopping("val_loss", patience=3,
                                                             verbose=1,
                                                             restore_best_weights=True)
-    num_train_examples = len(table_segmenter.io.list_images(train_data_path))
-    num_validation_examples = len(table_segmenter.io.list_images(val_data_path))
+    examples = glob.glob(data_glob)
+    print(f"Found {len(examples)} training examples")
+    random.shuffle(examples)
+    # 80 / 20 split
+    split_index = int(len(examples) * 0.8)
+    train_examples = examples[:split_index]
+    validation_examples = examples[split_index:]
     print("Loading training data")
-    train_dataset = make_dataset(train_data_path)
+    train_dataset = make_dataset(train_examples)
     print("Loading validation data")
-    val_dataset = make_dataset(val_data_path)
+    val_dataset = make_dataset(validation_examples)
 
     model = table_segmenter.model.build()
     model.compile(loss=table_segmenter.metrics.combined_loss,
@@ -77,8 +80,8 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
               validation_data=val_dataset,
               epochs=10,
               verbose=True,
-              steps_per_epoch=num_train_examples//conf.batch_size,
-              validation_steps=num_validation_examples//conf.batch_size,
+              steps_per_epoch=len(train_examples)//conf.batch_size,
+              validation_steps=len(validation_examples)//conf.batch_size,
               callbacks=[tensorboard_callback, early_stopping_callback])
 
     model.save(experiment_dir)
@@ -87,14 +90,11 @@ def train(train_data_path: Text, val_data_path: Text, experiment_dir: Text):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train the table segmenter.')
 
-    parser.add_argument("train_data_path",
-                        help='Path to the training data folder.')
-
-    parser.add_argument("val_data_path",
-                        help='Path to the validation data folder.')
+    parser.add_argument("data_glob",
+                        help='glob for the training data.')
 
     parser.add_argument("experiment_folder",
                         help='Path to the output folder for the model and logs.')
 
     args = parser.parse_args()
-    train(args.train_data_path, args.val_data_path, args.experiment_folder)
+    train(args.data_glob, args.experiment_folder)
