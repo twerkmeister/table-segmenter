@@ -72,7 +72,6 @@ def train(data_glob: Text, experiment_dir: Text):
     model = table_segmenter.model.build()
     model.compile(loss=table_segmenter.metrics.combined_loss,
                   optimizer=keras.optimizers.legacy.Adam(learning_rate=0.0003,
-                                                         weight_decay=0.01,
                                                          global_clipnorm=4.0),
                   metrics=[table_segmenter.metrics.regression_mean_absolute_error,
                            table_segmenter.metrics.decision_accuracy,
