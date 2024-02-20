@@ -5,17 +5,17 @@ description = ""
 authors = ["Thomas Werkmeister <thomas@werkmeister.me>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.10"
+python = ">=3.9,<3.10"
 numpy = "^1.22.4"
 opencv-python = "^4.5.4"
 tqdm = "^4.62.3"
 
 [tool.poetry.dependencies.tensorflow]
-version = "~2.11.0"
+version = "~2.15.0"
 markers = "sys_platform != 'darwin' or platform_machine != 'arm64'"
 
 [tool.poetry.dependencies.tensorflow-macos]
-version = "~2.11.0"
+version = "~2.15.0"
 markers = "sys_platform == 'darwin' and platform_machine == 'arm64'"
 
 [tool.poetry.dev-dependencies]

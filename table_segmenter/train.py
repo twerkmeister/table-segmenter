@@ -17,12 +17,12 @@ def load_data_for_training(data_path: Text):
     """Convenience method."""
     image_names, images = table_segmenter.io.load_images(data_path)
     targets = table_segmenter.io.load_targets(data_path, image_names)
-    original_image_shapes = [image.shape for image in images]
+    # original_image_shapes = [image.shape for image in images]
     x = table_segmenter.preprocessing.preprocess_images(images)
-    x_augmented, augmented_targets = \
-        table_segmenter.preprocessing.augment_multi(x, targets, original_image_shapes)
-    y = table_segmenter.preprocessing.preprocess_targets(augmented_targets)
-    return x_augmented, y
+    # x_augmented, augmented_targets = \
+    #     table_segmenter.preprocessing.augment_multi(x, targets, original_image_shapes)
+    y = table_segmenter.preprocessing.preprocess_targets(targets)
+    return x, y
 
 
 def make_dataset(image_names: list[Text]):
@@ -71,14 +71,16 @@ def train(data_glob: Text, experiment_dir: Text):
 
     model = table_segmenter.model.build()
     model.compile(loss=table_segmenter.metrics.combined_loss,
-                  optimizer='adam',
+                  optimizer=keras.optimizers.AdamW(learning_rate=0.001,
+                                                   weight_decay=0.01,
+                                                   global_clipnorm=4.0),
                   metrics=[table_segmenter.metrics.regression_mean_absolute_error,
                            table_segmenter.metrics.decision_accuracy,
                            table_segmenter.metrics.regression_mean_error,
                            table_segmenter.metrics.regression_error_stddev])
     model.fit(train_dataset,
               validation_data=val_dataset,
-              epochs=10,
+              epochs=20,
               verbose=True,
               steps_per_epoch=len(train_examples)//conf.batch_size,
               validation_steps=len(validation_examples)//conf.batch_size,

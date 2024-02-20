@@ -57,8 +57,8 @@ def preprocess_image(img: np.ndarray) -> np.ndarray:
     img = make_grayscale(img)
     img = truncate(img, conf.image_max_height, conf.image_max_width)
     img = blur(img)
-    img = invert(img)
-    img = normalize(img)
+    # normalize so that max value is 0.0 post inversion
+    img = np.max(img) - img
     img = pad(img, conf.image_max_height, conf.image_max_width)
     return np.expand_dims(img, 2)
 
